@@ -112,9 +112,6 @@ if (isset($_GET['code'])) {
       <button onclick="enableNotif()" class="btn rounded-circle todo d-flex justify-content-center border" style="height: 35px;width: 35px">
         <i class="bi bi-bell"></i>
       </button>
-      <button onclick="sendNotification()" class="btn rounded-circle todo d-flex justify-content-center border" style="height: 35px;width: 35px">
-        <i class="bi bi-bell"></i>
-      </button>
     </div>
     <form class="rounded-3 p-3">
 
@@ -123,10 +120,10 @@ if (isset($_GET['code'])) {
       $getTodos = $conn->query("SELECT * FROM todos ORDER BY id DESC");
       while ($fetch = $getTodos->fetch_assoc()) :
       ?>
-        <div class="todo col-12 col-md-10 rounded-3 p-3 m-auto mb-2">
-          <div class="checkbox-wrapper d-flex justify-content-between align-items-center">
-            <input style="display: none;" type="checkbox" id="cbx" class="inp-cbx" />
-            <label for="cbx" class="cbx">
+        <div class="todo col-12 col-md-10 rounded-3 d-flex align-items-center p-2 m-auto mb-2" style="height: 50px">
+          <div class="checkbox-wrapper col-12 d-flex justify-content-between align-items-center">
+            <input style="display: none;" type="checkbox" id="cbx" class="inp-cbx mb-0" />
+            <label for="cbx" class="cbx mb-0">
               <span>
                 <svg viewBox="0 0 12 9" height="9px" width="12px">
                   <polyline points="1 5 4 8 11 1"></polyline>
@@ -134,9 +131,9 @@ if (isset($_GET['code'])) {
               </span>
               <span><?= $fetch['todo'] ?></span>
             </label>
-            <div class="d-flex gap-3">
-              <input type="time" id="notificationTime">
-              <button type="button" onclick='scheduleNotification(<?= $fetch["id"] ?>)' class="btn p-0 border-0 todo px-2">Set Timer</button>
+            <div class="d-flex my-auto gap-3">
+              <input type="time" id="notificationTime" class="form-control p-0 my-auto" style="height: 20px">
+              <button type="button" onclick='scheduleNotification(<?= $fetch["id"] ?>)' class="btn p-0 border-0 todo px-2 m-auto">Set</button>
               <button type="button" id="delete-todo" class="btn p-0 border-0">
                 <i class="bi bi-trash text-danger"></i>
               </button>
