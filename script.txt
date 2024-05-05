@@ -1,3 +1,4 @@
 composer require google/apiclient:"^2.0" --with-all-dependencies
 php VAPID.php
 composer require minishlink/web-push
+composer require vlucas/phpdotenv

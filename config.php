@@ -1,12 +1,13 @@
 <?php
-
-require_once 'vendor/autoload.php';
-
 session_start();
 
+require_once 'vendor/autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
 // init configuration
-$clientID = getenv("GOOGLE_CLIENT_ID");
-$clientSecret = getenv("GOOGLE_CLIEINT_SECRET");
+$clientID = $_ENV['GOOGLE_CLIENT_ID'];
+$clientSecret = $_ENV["GOOGLE_CLIENT_SECRET"];
 $redirectUri = 'http://localhost/TodosApp/welcome.php';
 
 // create Client Request to access Google API
