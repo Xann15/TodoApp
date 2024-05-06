@@ -3,12 +3,19 @@ require_once("config.php");
 require_once("vendor/autoload.php");
 $requestData = json_decode(file_get_contents('php://input'), true);
 $userId = $requestData['userId'];
+$todoId = $requestData['todoId'];
+$notificationTime = $requestData['notificationTime'];
 
 $query = $conn->query("SELECT * FROM users WHERE id = '$userId'");
 $fetch = $query->fetch_assoc();
 $subscription = $fetch['notification_endpoint'];
 $fname = $fetch['full_name'];
 $mail = $fetch['email'];
+
+$query2 = $conn->query("SELECT * FROM todos WHERE id = '$todoId'");
+$fetch2 = $query2->fetch_assoc();
+$todo = $fetch2['todo'];
+
 // if ($query) {
 //     header('Location: query_' . $subscription . '.php');
 // } else {
@@ -31,7 +38,7 @@ $webPush = new WebPush($auth);
 
 $report = $webPush->sendOneNotification(
     Subscription::create(json_decode($subscription, true)),
-    '{"title":"Hi ' . $fname . ' " , "body":"your email: ' . $mail . '" , "url":"./?message=123"}',
+    '{"title":"Todo App" , "body":"Hi ' . $fname . ', jangan lupa ' . $todo . ' ya, di jam ' . $notificationTime . '" , "url":"./?message=123"}',
     ['TTL' => 1000]
 );
 
