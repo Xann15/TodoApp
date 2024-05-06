@@ -55,7 +55,20 @@ if (isset($_GET['code'])) {
   if (mysqli_num_rows($result) > 0) {
     // user is exists
     $userinfo = mysqli_fetch_assoc($result);
+    $userId = $userinfo['id'];
   }
+}
+
+if (isset($_POST['delete-todo'])) {
+  $todoId = $_POST['todoId'];
+  $querys = $conn->query("DELETE FROM todos WHERE id = '$todoId'");
+  header("Location: ./welcome.php");
+}
+
+if (isset($_POST['add-todo'])) {
+  $todo = $_POST['todo'];
+  $queryy = $conn->query("INSERT INTO todos(user_id, status, todo) VALUES('$userId','false','$todo')");
+  header("Location: ./welcome.php");
 }
 
 ?>
@@ -71,8 +84,9 @@ if (isset($_GET['code'])) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" integrity="sha512-dPXYcDub/aeb08c63jRq/k6GaKccl256JQy/AnOq7CAnEZ9FzSL9wSbcZkMp4R26vBsMLFYH4kQ67/bbV8XaCQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <link rel="shortcut icon" href="icon.png" type="image/x-icon">
 
-  <title>Welcome</title>
+  <title>Todo App</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -86,17 +100,18 @@ if (isset($_GET['code'])) {
 
   <input type="hidden" name="uid" id="uid" value="<?= $userinfo['id'] ?>">
 
-  <div class="navbar fixed-bottom col-11 col-md-8 col-lg-7 col-xl-6 mx-auto m-3 p-0" style="height: 50px;">
-    <div class="col-10 todo">
-      <input type="text" id="textInput" placeholder="Tambahkan data...">
+  <form action="" method="post">
+    <div class="navbar fixed-bottom col-12 col-md-8 col-lg-7 col-xl-6 mx-auto p-1" style="height: 50px;">
+      <div class="input-group mb-3">
+        <input type="text" class="form-control todo" name="todo" id="textInput" placeholder="Tambahkan data...">
+        <button type="submit" name="add-todo" class="btn btn-dark">Tambah</button>
+        <!-- <button type="button" class="btn btn-dark" onclick="addTodo()">Tambah</button> -->
+      </div>
     </div>
-    <div class="col-2 todo">
-      <button type="button" onclick="addTodo()">Tambah</button>
-    </div>
-  </div>
+  </form>
 
   <div class="container mb-5 pb-4">
-    <div class="title cursor mt-5 gap-2 d-flex justify-content-center">
+    <div class="title select-none cursor mt-5 gap-2 d-flex justify-content-center">
       <div class="d-flex gap-1 align-items-center">
         <div class="icon">
           <svg width="35" height="35" viewBox="0 -5 20 30">
@@ -113,66 +128,80 @@ if (isset($_GET['code'])) {
         <i class="bi bi-bell"></i>
       </button>
     </div>
-    <form class="rounded-3 p-3">
+    <div id="todo-list" class="rounded-3 p-3">
+
       <?php
 
-      $getTodos = $conn->query("SELECT * FROM todos ORDER BY id DESC");
-      while ($fetch = $getTodos->fetch_assoc()) :
+      $getTodos = $conn->query("SELECT * FROM todos WHERE user_id = '$userId' ORDER BY id DESC");
+      if ($getTodos->num_rows > 0) {
+        while ($fetch = $getTodos->fetch_assoc()) :
+          $todoId = $fetch['id'];
+          $status = $fetch['status'];
+          $isChecked = $status == "true" ? 'checked' : '';
       ?>
-        <div class="todo col-12 col-md-10 rounded-3 d-flex align-items-center p-2 m-auto mb-2" style="height: 50px">
-          <div class="checkbox-wrapper col-12 d-flex justify-content-between align-items-center">
-            <input style="display: none;" type="checkbox" id="cbx" class="inp-cbx mb-0" />
-            <label for="cbx" class="cbx mb-0">
-              <span>
-                <svg viewBox="0 0 12 9" height="9px" width="12px">
-                  <polyline points="1 5 4 8 11 1"></polyline>
-                </svg>
-              </span>
-              <span><?= $fetch['todo'] ?></span>
-            </label>
-            <div class="d-flex my-auto gap-3">
-              <input type="time" id="notificationTime" class="form-control p-0 my-auto" style="height: 20px">
-              <button type="button" onclick='scheduleNotification(<?= $fetch["id"] ?>)' class="btn p-0 border-0 todo px-2 m-auto">Set</button>
-              <button type="button" id="delete-todo" class="btn p-0 border-0">
-                <i class="bi bi-trash text-danger"></i>
-              </button>
+          <div id="todo<?= $todoId ?>" class="todo col-12 col-md-10 rounded-3 d-flex align-items-center p-2 m-auto mb-2" style="height: 50px">
+            <div class="checkbox-wrapper col-12 d-flex justify-content-between align-items-center">
+              <input type="checkbox" id="cbx<?= $todoId ?>" class="inp-cbx d-none" data-todoid="<?= $todoId ?>" <?= $isChecked ?>>
+              <label for="cbx<?= $todoId ?>" class="cbx">
+                <span>
+                  <svg viewBox="0 0 12 9" height="9px" width="12px">
+                    <polyline points="1 5 4 8 11 1"></polyline>
+                  </svg>
+                </span>
+                <span><?= $fetch['todo'] ?></span>
+              </label>
+              <div class="d-flex my-auto gap-3">
+                <input type="time" id="notificationTime" class="form-control p-0 my-auto" style="height: 20px">
+                <button type="button" onclick='scheduleNotification(<?= $fetch["id"] ?>)' class="btn p-0 border-0 todo px-2 m-auto">Set</button>
+                <form action="" method="post">
+                  <button type="submit" name="delete-todo" class="btn p-0 border-0">
+                    <input type="hidden" name="todoId" value="<?= $fetch['id'] ?>">
+                    <i class="bi bi-trash text-danger"></i>
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
+        <?php
+        endwhile;
+      } else { ?>
+        <div class="todo mx-auto d-flex py-1 cursor select-none px-5" style="width: fit-content;">
+          <p class="text-center m-auto">No todo items yet.</p>
         </div>
-      <?php endwhile; ?>
+      <?php } ?>
 
-    </form>
+    </div>
   </div>
 
   <script>
-    function addTodo() {
-      var inputText = $("#textInput").val();
-      var userId = $('#uid').val();
-      // Kirim AJAX request
-      $.ajax({
-        type: "POST",
-        url: "addTodo.php",
-        data: {
-          inputText: inputText,
-          userId: userId
+    // function addTodo() {
+    //   var inputText = $("#textInput").val();
+    //   var userId = $('#uid').val();
+    //   // Kirim AJAX request
+    //   $.ajax({
+    //     type: "POST",
+    //     url: "addTodo.php",
+    //     data: {
+    //       inputText: inputText,
+    //       userId: userId
 
-        },
-        success: function(response) {
+    //     },
+    //     success: function(response) {
+    //       $('#todo-list').html = response;
+    //       $("#textInput").val("");
+    //     },
+    //     error: function(xhr, status, error) {
+    //       console.error("Gagal menambahkan data:", error);
+    //     }
+    //   });
+    // }
 
-          $("#textInput").val("");
-        },
-        error: function(xhr, status, error) {
-          console.error("Gagal menambahkan data:", error);
-        }
-      });
-    }
-
-    // todos check
-    $('#cbx').change(function() {
+    // Setiap kali checkbox diubah
+    $('.inp-cbx').change(function() {
       var isChecked = $(this).is(':checked');
-      var userId = $('#uid').val(); // Anda perlu mengimplementasikan fungsi ini untuk mendapatkan ID pengguna
+      var todoId = $(this).data('todoid');
 
-      // Kirim permintaan AJAX ke server PHP
+      // Kirim AJAX request ke server untuk mengupdate status todo
       $.ajax({
         url: 'update-todo-status.php',
         method: 'POST',
@@ -181,14 +210,33 @@ if (isset($_GET['code'])) {
           todoId: todoId
         },
         success: function(response) {
-          console.log(this.data);
+          // Tampilkan respons dari server di console
           console.log(response);
+
+          // Update tampilan todo yang sesuai berdasarkan status checkbox
+          updateTodoAppearance(todoId, isChecked);
         },
         error: function(xhr, status, error) {
           console.error('Error:', error);
         }
       });
     });
+
+    // Fungsi untuk mengupdate tampilan todo berdasarkan status checkbox
+    function updateTodoAppearance(todoId, isChecked) {
+      var todoElement = $('#todo' + todoId);
+      var checkboxElement = todoElement.find('.inp-cbx');
+
+      // Update tampilan checkbox berdasarkan status
+      if (isChecked) {
+        checkboxElement.prop('checked', true);
+        todoElement.addClass('checked');
+      } else {
+        checkboxElement.prop('checked', false);
+        todoElement.removeClass('checked');
+      }
+    }
+
 
     const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
     const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
@@ -278,7 +326,6 @@ if (isset($_GET['code'])) {
           if (!response.ok) {
             throw new Error('Failed to schedule notification');
           }
-          alert('Notification scheduled successfully at ' + notificationTime);
         })
         .catch(error => {
           console.error('Error scheduling notification:', error);
